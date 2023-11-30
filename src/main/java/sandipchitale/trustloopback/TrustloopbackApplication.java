@@ -49,8 +49,29 @@ public class TrustloopbackApplication {
 			SslBundle clientSslBundle = sslBundles.getBundle("client");
 			RestTemplate restTemplate;
 			restTemplate = restTemplateBuilder.setSslBundle(clientSslBundle).build();
-			System.out.println(restTemplate.getForObject("https://localhost:8080/", String.class));
-			System.out.println(restTemplate.getForObject("https://server1:8080/", String.class));
+
+			try {
+				System.out.println("Trying to access https://localhost:8080/ with SslBundle 'client' expecting success");
+				System.out.println(restTemplate.getForObject("https://localhost:8080/", String.class));
+				System.out.println("Success");
+			} catch (RestClientException e) {
+				System.out.println("Unexpected Exception:" + e.getMessage());
+			}
+
+			try {
+				System.out.println("Trying to access https://server:8080/ with SslBundle 'client' expecting success");
+				System.out.println(restTemplate.getForObject("https://server1:8080/", String.class));
+				System.out.println("Success");
+			} catch (RestClientException e) {
+				System.out.println("Unexpected Exception:" + e.getMessage());
+			}
+
+			try {
+				System.out.println("Trying to access https://host1:8080/ with SslBundle 'client' expecting failure");
+				System.out.println(restTemplate.getForObject("https://host1:8080/", String.class));
+			} catch (RestClientException restClientException) {
+				System.out.println("Expected exception: " + restClientException.getMessage());
+			}
 
 			try {
                 System.out.println("Trying to access https://127.0.0.1:8080/ with SslBundle 'client' expecting failure");

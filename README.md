@@ -4,6 +4,8 @@ This is a simple Spring Boot application that demonstrates how to use `RestTempl
 to make REST calls to loopback address `127.0.0.1` and ignore Host verification 
 SAN does not contain the loopback address.
 
+The keystore only has key+certificate with SAN = `localhost` and `server1` DNS names.
+
 ### Reference Documentation
 For further reference, please consider the following sections:
 
