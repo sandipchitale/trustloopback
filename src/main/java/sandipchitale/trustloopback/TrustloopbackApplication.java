@@ -75,8 +75,7 @@ public class TrustloopbackApplication {
                                                                      .setConnectionManager(httpClientConnectionManager)
                                                                      .evictExpiredConnections()
                                                                      .build();
-                HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-                requestFactory.setHttpClient(closeableHttpClient);
+                HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(closeableHttpClient);
 				return requestFactory;
 			}).build();
 
