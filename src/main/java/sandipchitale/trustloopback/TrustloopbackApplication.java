@@ -20,6 +20,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.HostnameVerifier;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 
 @SpringBootApplication
 public class TrustloopbackApplication {
@@ -53,6 +56,7 @@ public class TrustloopbackApplication {
 	@Bean
 	public CommandLineRunner clr (RestTemplateBuilder restTemplateBuilder, SslBundles sslBundles) {
 		return (String... args) -> {
+
 			SslBundle clientSslBundle = sslBundles.getBundle("client");
 			RestTemplate restTemplate;
 			restTemplate = restTemplateBuilder.setSslBundle(clientSslBundle).build();
@@ -66,7 +70,7 @@ public class TrustloopbackApplication {
 			}
 
 			try {
-				System.out.println("Trying to access https://server:8080/ with SslBundle 'client' expecting success");
+				System.out.println("Trying to access https://server1:8080/ with SslBundle 'client' expecting success");
 				System.out.println(restTemplate.getForObject("https://server1:8080/", String.class));
 				System.out.println("Success");
 			} catch (RestClientException e) {
@@ -107,13 +111,29 @@ public class TrustloopbackApplication {
 				return requestFactory;
 			}).build();
 
-			try {
-				System.out.println("Trying to access https://10.0.0.194:8080/ with SslBundle 'client' but with a custom LoopbackIPHostnameVerifier expecting failure");
-				System.out.println(restTemplate.getForObject("https://10.0.0.194:8080/", String.class));
-				System.out.println("Unexpected success");
-			} catch (RestClientException e) {
-				System.out.println("Expected Exception:" + e.getMessage());
+
+			// Try with all the non-loopback IP addresses
+			System.out.println("Trying with all non-loopback IP addresses");
+			Enumeration<NetworkInterface> networkInterfaceEnumeration= NetworkInterface.getNetworkInterfaces();
+			while(networkInterfaceEnumeration.hasMoreElements()) {
+				NetworkInterface networkInterface = (NetworkInterface) networkInterfaceEnumeration.nextElement();
+				Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+				while (inetAddresses.hasMoreElements()) {
+					InetAddress inetAddress = (InetAddress) inetAddresses.nextElement();
+					String hostAddress = inetAddress.getHostAddress();
+					if (!hostAddress.startsWith("127.")) {
+						try {
+							System.out.println("Trying to access https://" + hostAddress + ":8080/ with SslBundle 'client' but with a custom LoopbackIPHostnameVerifier expecting failure");
+							System.out.println(restTemplate.getForObject("https://" + hostAddress + ":8080/", String.class));
+							System.out.println("Unexpected success");
+						} catch (RestClientException e) {
+							System.out.println("Expected Exception:" + e.getMessage());
+						}
+						continue;
+					}
+				}
 			}
+
 			try {
 				System.out.println("Trying to access https://127.0.0.1:8080/ with SslBundle 'client' but with a custom LoopbackIPHostnameVerifier expecting success");
 				System.out.println(restTemplate.getForObject("https://127.0.0.1:8080/", String.class));
