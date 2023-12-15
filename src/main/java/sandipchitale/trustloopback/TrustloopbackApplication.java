@@ -141,6 +141,8 @@ public class TrustloopbackApplication {
 			} catch (RestClientException e) {
 				System.out.println("Unexpected Exception:" + e.getMessage());
 			}
+
+			System.exit(0);
 		};
 	}
 }
